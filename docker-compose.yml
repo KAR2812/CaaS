@@ -1,0 +1,131 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: caas-postgres
+    environment:
+      POSTGRES_DB: caas_db
+      POSTGRES_USER: caas
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U caas"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for BullMQ and caching
+  redis:
+    image: redis:7-alpine
+    container_name: caas-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Django Backend API
+  django:
+    build:
+      context: ./caas-backend
+      dockerfile: Dockerfile
+    container_name: caas-django
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./caas-backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgresql://caas:dev_password@postgres:5432/caas_db
+      - REDIS_URL=redis://redis:6379/0
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/schema/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Node.js Scheduler Service
+  scheduler:
+    build:
+      context: ./caas-scheduler
+      dockerfile: Dockerfile
+    container_name: caas-scheduler
+    command: npm run dev
+    volumes:
+      - ./caas-scheduler:/app
+      - /app/node_modules
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+      - DJANGO_API_URL=http://django:8000
+      - PORT=3001
+    depends_on:
+      redis:
+        condition: service_healthy
+      django:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # React Editor (Development server) - COMMENTED OUT: Implementation in progress
+  # editor:
+  #   build:
+  #     context: ./caas-editor
+  #     dockerfile: Dockerfile.dev
+  #   container_name: caas-editor
+  #   command: npm run dev
+  #   volumes:
+  #     - ./caas-editor:/app
+  #     - /app/node_modules
+  #   ports:
+  #     - "5173:5173"
+  #   environment:
+  #     - VITE_API_URL=http://localhost:8000
+  #     - VITE_SCHEDULER_URL=http://localhost:3001
+  #   depends_on:
+  #     - django
+  #     - scheduler
+
+  # Next.js Marketing Site (Development server) - COMMENTED OUT: Implementation in progress
+  # marketing:
+  #   build:
+  #     context: ./caas-marketing
+  #     dockerfile: Dockerfile.dev
+  #   container_name: caas-marketing
+  #   command: npm run dev
+  #   volumes:
+  #     - ./caas-marketing:/app
+  #     - /app/node_modules
+  #     - /app/.next
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://localhost:8000
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: caas-network

@@ -1,0 +1,89 @@
+[
+    {
+        "model": "subscriptions.plan",
+        "pk": 1,
+        "fields": {
+            "name": "Free",
+            "tier": "free",
+            "price_monthly": "0.00",
+            "stripe_price_id": "",
+            "tokens_per_month": 100,
+            "scheduled_posts": 5,
+            "workspaces": 1,
+            "team_members": 1,
+            "features": {
+                "ai_providers": [
+                    "openai"
+                ],
+                "platforms": [
+                    "twitter",
+                    "linkedin",
+                    "instagram"
+                ],
+                "analytics": false,
+                "priority_support": false
+            },
+            "is_active": true
+        }
+    },
+    {
+        "model": "subscriptions.plan",
+        "pk": 2,
+        "fields": {
+            "name": "Pro",
+            "tier": "pro",
+            "price_monthly": "29.00",
+            "stripe_price_id": "price_pro_monthly",
+            "tokens_per_month": 5000,
+            "scheduled_posts": 100,
+            "workspaces": 3,
+            "team_members": 1,
+            "features": {
+                "ai_providers": [
+                    "openai",
+                    "gemini"
+                ],
+                "platforms": [
+                    "twitter",
+                    "linkedin",
+                    "instagram"
+                ],
+                "analytics": true,
+                "priority_support": false,
+                "content_versioning": true
+            },
+            "is_active": true
+        }
+    },
+    {
+        "model": "subscriptions.plan",
+        "pk": 3,
+        "fields": {
+            "name": "Team",
+            "tier": "team",
+            "price_monthly": "99.00",
+            "stripe_price_id": "price_team_monthly",
+            "tokens_per_month": 20000,
+            "scheduled_posts": 999999,
+            "workspaces": 10,
+            "team_members": 10,
+            "features": {
+                "ai_providers": [
+                    "openai",
+                    "gemini"
+                ],
+                "platforms": [
+                    "twitter",
+                    "linkedin",
+                    "instagram"
+                ],
+                "analytics": true,
+                "priority_support": true,
+                "content_versioning": true,
+                "custom_branding": true,
+                "api_access": true
+            },
+            "is_active": true
+        }
+    }
+]

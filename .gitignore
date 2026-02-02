@@ -1,0 +1,19 @@
+# Root gitignore
+.DS_Store
+*.log
+.env
+.env.local
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Database
+*.db
+*.sqlite3
+pg_data/
+redis_data/
